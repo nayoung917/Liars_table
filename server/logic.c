@@ -201,7 +201,7 @@ void process_play_command(int player_index, const char *command)
     printf("\n");
     // 클라이언트에는 카드 내용 없이 전송
     char msg[BUF_SIZE];
-    snprintf(msg, sizeof(msg), "Player %d이 카드를 제출했습니다.\n", player_index);
+    snprintf(msg, sizeof(msg), "Player %d이 카드를 %d장 제출했습니다.\n", player_index, count);
     for (int i = 0; i < player_count; i++)
     {
         send(players[i].socket, msg, strlen(msg), 0);
