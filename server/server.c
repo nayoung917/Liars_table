@@ -45,6 +45,8 @@ void accept_clients(int server_socket)
     struct sockaddr_in client_addr;
     socklen_t addr_size = sizeof(client_addr);
 
+    //최대 플레이어 수만큼만 접속(4명)
+    //MAX_PLAYERS 보다 크거나 같아지면 루프 종료-> 이후 접속 자동 차단
     while (player_count < MAX_PLAYERS)
     {
         int client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_size);
@@ -63,13 +65,13 @@ void accept_clients(int server_socket)
         pthread_mutex_unlock(&lock);
     }
 
-    // 모든 플레이어 접속 후 카드 분배
+    // 모든 플레이어 접속 후 카드 분배 및 테이블 타입 설정
     distribute_cards();
     set_table_type();
 
     for (int i = 0; i < player_count; i++)
     {
-        send_hand(i);
+        send_hand(i); //카드 전송
 
         char info[32];
         snprintf(info, sizeof(info), "YOU_ARE %d\n", i);
@@ -88,6 +90,7 @@ void accept_clients(int server_socket)
         send(players[i].socket, roulette_info, strlen(roulette_info), 0);
     }
     notify_turn();
+    //LAIR 관련 상태 초기화
     liar_pending = 0;
     liar_target = -1;
 }

@@ -7,6 +7,7 @@ void process_liar_command(int player_index);
 void advanced_turn();
 void notify_turn();
 
+//게임 상태 관련 전역변수들 
 int liar_pending = 0;     // 1이면 LIAR 선언 가능한 상태
 int liar_target = -1;     // 거짓말 의심 대상
 int liar_escaped_win = 0; // 카드 0장으로 이긴 사람 ID, LIAR 기회가 끝난 후에만 승리 처리
@@ -47,7 +48,7 @@ void set_table_type()
         send(players[i].socket, table_msg, strlen(table_msg), 0);
     }
 }
-// 핸들러
+//스레드 함수/ 명령수신 처리(PLAY,LIAR)
 void *handle_client(void *arg)
 {
     int player_index = *(int *)arg;
@@ -73,11 +74,12 @@ void *handle_client(void *arg)
         }
         else
         {
+            //잘못된 명령어 처리
             printf("Player %d: %s\n", player_index, buffer);
             send(players[player_index].socket, "지원하지 않는 명령어입니다. PLAY 또는 LIAR를 입력하세요.\n", BUF_SIZE, 0); // PLAY나 LIAR가 아닌 명령어 입력 예외 처리
         }
     }
-    // 순서 검증
+    // 현재 차례 아닌 경우
     if (player_index != current_turn)
     {
         send(players[player_index].socket, "아직 당신의 차례가 아닙니다!\n", 42, 0);
@@ -100,7 +102,7 @@ void *handle_client(void *arg)
 
     return NULL;
 }
-// 게임 진행 로직
+// 카드 제출 로직
 void process_play_command(int player_index, const char *command)
 {
     if (liar_pending && game_started)
@@ -111,20 +113,14 @@ void process_play_command(int player_index, const char *command)
             players[liar_target].life > 0 &&
             active_players[liar_target])
         {
-            liar_escaped_win = liar_target;
-
-            /*char win_msg[BUF_SIZE];
-            snprintf(win_msg, sizeof(win_msg), "🎉 Player %d이 모든 카드를 제출해 승리했습니다!\n", liar_target);
-            for (int i = 0; i < player_count; i++)
-            {
-                send(players[i].socket, win_msg, strlen(win_msg), 0);
-            }*/
+            liar_escaped_win = liar_target;//우승 후보 저장
             liar_pending = 0;
             liar_target = -1;
             last_player_id = -1;
             last_played_count = 0;
         }
     }
+    //카드 파싱
     char card_strs[3][16];
     int count = sscanf(command, "PLAY %s %s %s", card_strs[0], card_strs[1], card_strs[2]);
     if (count < 1 || count > 3)
@@ -339,7 +335,6 @@ void process_liar_command(int player_index)
 
         snprintf(shot_msg, sizeof(shot_msg),
                  "...아무 일도 일어나지 않았습니다.\n😮 Player %d이 살아남았습니다!\n", victim);
-        // send(players[victim].socket, shot_msg, strlen(shot_msg), 0);
 
         // 남은 실린더 출력
         char cylinder_state[5] = "OOOO"; // 4칸 기준
@@ -375,6 +370,7 @@ void advanced_turn()
 // 턴 알리기
 void notify_turn()
 {
+    //우승 조건 확인
     if (liar_escaped_win != -1 && liar_win_ready)
     {
         if (players[liar_escaped_win].life > 0 &&

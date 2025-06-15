@@ -10,7 +10,7 @@
 
 int my_player_index = -1;
 int my_turn = 0;
-//카드 정보 출력
+//메시지 출력
 void receive_hand(int sock)
 {
     char buffer[BUF_SIZE];
@@ -59,11 +59,12 @@ void receive_hand(int sock)
             }
             else
             {
+                //중복 카드 출력 제외
                 if (
                     strstr(line, "KING") && strstr(line, "QUEEN") &&
                     strstr(line, "ACE") && strstr(line, "JOCKER") &&
                     strstr(line, "내 카드") == NULL)
-                {
+                { //카드 구성 정보 중복 방지
                 }
                 else
                 {
