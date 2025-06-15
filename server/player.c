@@ -69,7 +69,7 @@ void send_table_info(int player_index)
 
     send(players[player_index].socket, buffer, strlen(buffer), 0);
 }
-
+//카드 정보 보내기
 void send_hand(int player_index)
 {
     if (player_index < 0 || player_index >= player_count)

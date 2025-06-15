@@ -10,7 +10,7 @@
 
 int my_player_index = -1;
 int my_turn = 0;
-
+//카드 정보 출력
 void receive_hand(int sock)
 {
     char buffer[BUF_SIZE];
@@ -74,7 +74,7 @@ void receive_hand(int sock)
         }
     }
 }
-
+//서버 연결
 int connect_to_server()
 {
     int sock;

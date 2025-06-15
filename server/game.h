@@ -45,6 +45,7 @@ extern TableType currenttable;
 extern Card deck[MAX_CARDS];
 extern int current_turn;
 extern int active_players[MAX_PLAYERS];//생존 여부
+extern int game_started;
 
 extern Submission last_submission;
 extern PlayedCard last_played_cards[3];

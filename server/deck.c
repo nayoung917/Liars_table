@@ -21,7 +21,6 @@ void init_deck() {
     }
     printf("덱이 초기화되었습니다. 총 카드 수: %d\n", index);
 }
-
 //카드 섞기기
 void shuffle_deck() {
     for (int i = 0; i < MAX_CARDS; i++) {

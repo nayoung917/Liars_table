@@ -10,6 +10,8 @@ void notify_turn();
 int liar_pending = 0;     // 1이면 LIAR 선언 가능한 상태
 int liar_target = -1;     // 거짓말 의심 대상
 int liar_escaped_win = 0; // 카드 0장으로 이긴 사람 ID, LIAR 기회가 끝난 후에만 승리 처리
+int game_started = 0;     // 게임 시작 여부
+int liar_win_ready = 0;
 
 // 랜덤 테이블 타입 설정
 void set_table_type()
@@ -37,10 +39,11 @@ void set_table_type()
     // 클라이언트에게도 전송
     char table_msg[BUF_SIZE];
     snprintf(table_msg, sizeof(table_msg),
-        "📢 이번 턴의 테이블 타입: %s Table입니다!\n", 
-        type_str);
+             "📢 이번 턴의 테이블 타입: %s Table입니다!\n",
+             type_str);
 
-    for (int i = 0; i < player_count; i++) {
+    for (int i = 0; i < player_count; i++)
+    {
         send(players[i].socket, table_msg, strlen(table_msg), 0);
     }
 }
@@ -100,23 +103,27 @@ void *handle_client(void *arg)
 // 게임 진행 로직
 void process_play_command(int player_index, const char *command)
 {
-    if (liar_pending)
+    if (liar_pending && game_started)
     {
+        // liar_target 유효성 먼저 확인
+
         if (players[liar_target].card_count == 0 &&
             players[liar_target].life > 0 &&
             active_players[liar_target])
         {
+            liar_escaped_win = liar_target;
 
-            char win_msg[BUF_SIZE];
+            /*char win_msg[BUF_SIZE];
             snprintf(win_msg, sizeof(win_msg), "🎉 Player %d이 모든 카드를 제출해 승리했습니다!\n", liar_target);
             for (int i = 0; i < player_count; i++)
             {
                 send(players[i].socket, win_msg, strlen(win_msg), 0);
-            }
-            active_players[liar_target] = 0;
+            }*/
+            liar_pending = 0;
+            liar_target = -1;
+            last_player_id = -1;
+            last_played_count = 0;
         }
-        liar_pending = 0;
-        liar_target = -1;
     }
     char card_strs[3][16];
     int count = sscanf(command, "PLAY %s %s %s", card_strs[0], card_strs[1], card_strs[2]);
@@ -259,7 +266,7 @@ void process_liar_command(int player_index)
 
     int roulette = rand() % 4; // 0이면 죽음 (25%)
     int victim = mismatch_found ? last_player_id : player_index;
-    Player* target = &players[victim];
+    Player *target = &players[victim];
     // 결과 메시지 준비
     char result_msg[BUF_SIZE * 2];
     char info_msg[BUF_SIZE];
@@ -319,7 +326,11 @@ void process_liar_command(int player_index)
     {
         target->life = 0;
         snprintf(shot_msg, sizeof(shot_msg),
-                 "🔫 탕! 러시안 룰렛이 발사되었습니다!\n☠️ Player %d이 사망했습니다.\n", victim);
+                 "🔫 탕! 러시안 룰렛이 발사되었습니다!\n");
+        if (victim == liar_escaped_win)
+        {
+            liar_escaped_win = -1;
+        }
         send(players[victim].socket, shot_msg, strlen(shot_msg), 0);
     }
     else
@@ -328,7 +339,7 @@ void process_liar_command(int player_index)
 
         snprintf(shot_msg, sizeof(shot_msg),
                  "...아무 일도 일어나지 않았습니다.\n😮 Player %d이 살아남았습니다!\n", victim);
-        //send(players[victim].socket, shot_msg, strlen(shot_msg), 0);
+        // send(players[victim].socket, shot_msg, strlen(shot_msg), 0);
 
         // 남은 실린더 출력
         char cylinder_state[5] = "OOOO"; // 4칸 기준
@@ -364,6 +375,28 @@ void advanced_turn()
 // 턴 알리기
 void notify_turn()
 {
+    if (liar_escaped_win != -1 && liar_win_ready)
+    {
+        if (players[liar_escaped_win].life > 0 &&
+            active_players[liar_escaped_win] &&
+            players[liar_escaped_win].card_count == 0)
+        {
+            char win_msg[BUF_SIZE];
+            snprintf(win_msg, sizeof(win_msg), "🎉 Player %d이 모든 카드를 제출하고 살아남아 승리했습니다!\n", liar_escaped_win);
+            for (int i = 0; i < player_count; i++)
+            {
+                send(players[i].socket, win_msg, strlen(win_msg), 0);
+            }
+            sleep(3);
+            exit(0);
+        }
+        liar_escaped_win = -1;
+        liar_win_ready = 0;
+    }
+    else if (liar_escaped_win != -1 && !liar_win_ready)
+    {
+        liar_win_ready = 1;
+    }
     char msg[BUF_SIZE];
     snprintf(msg, sizeof(msg), "TURN %d\n", current_turn);
 
@@ -397,6 +430,7 @@ void notify_turn()
             send(players[i].socket, hand_msg, strlen(hand_msg), 0);
         }
     }
+    game_started = 1;
 }
 // 플레이어 생존 여부
 void check_player_status(int player_index)
@@ -441,5 +475,17 @@ void check_player_status(int player_index)
         }
         sleep(3);
         exit(0);
+    }
+    // 카드 0장인 생존자 승리 처리
+    if (game_started)
+    {
+        for (int i = 0; i < player_count; i++)
+        {
+            if (active_players[i] && players[i].card_count == 0)
+            {
+                liar_escaped_win = i; // 바로 등록
+                return;
+            }
+        }
     }
 }
