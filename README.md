@@ -91,4 +91,4 @@ liars_table/
 ## 개발자
 
 - GitHub: https://github.com/nayoung917  
-- 구현 기간: 2025년 5월 ~ 6월
+- 구현 기간: 2025년 4월 ~ 6월
