@@ -484,4 +484,5 @@ void check_player_status(int player_index)
             }
         }
     }
-}
+} 
+//깃허브 오류ㅠㅠ 테스트용 주석 
