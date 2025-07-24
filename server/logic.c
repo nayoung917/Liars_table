@@ -35,12 +35,12 @@ void set_table_type()
     }
 
     // 서버 콘솔 출력
-    printf("\n📢 이번 턴은 %s's Table입니다!\n", type_str);
+    printf("\n 이번 턴은 %s's Table입니다!\n", type_str);
 
     // 클라이언트에게도 전송
     char table_msg[BUF_SIZE];
     snprintf(table_msg, sizeof(table_msg),
-             "📢 이번 턴의 테이블 타입: %s Table입니다!\n",
+             " 이번 턴의 테이블 타입: %s Table입니다!\n",
              type_str);
 
     for (int i = 0; i < player_count; i++)
@@ -284,7 +284,7 @@ void process_liar_command(int player_index)
     char card_list_msg[BUF_SIZE] = "실제 제출 카드: ";
     memset(result_msg, 0, sizeof(result_msg));
 
-    strcpy(card_list_msg, "🃏 Player ");
+    strcpy(card_list_msg, " Player ");
     char temp[16];
     sprintf(temp, "%d", last_player_id);
     strcat(card_list_msg, temp);
@@ -312,15 +312,15 @@ void process_liar_command(int player_index)
     // 라이어 여부 안내
     if (mismatch_found)
     {
-        snprintf(info_msg, sizeof(info_msg), "✅ Player %d의 거짓말을 간파했습니다!\n", last_player_id);
+        snprintf(info_msg, sizeof(info_msg), " Player %d의 거짓말을 간파했습니다!\n", last_player_id);
     }
     else
     {
-        snprintf(info_msg, sizeof(info_msg), "❌ Player %d은 거짓말을 하지 않았습니다!\n", last_player_id);
+        snprintf(info_msg, sizeof(info_msg), " Player %d은 거짓말을 하지 않았습니다!\n", last_player_id);
     }
     // 러시안 룰렛 안내 메시지
     snprintf(roulette_msg, sizeof(roulette_msg),
-             "💀 Player %d에게 러시안 룰렛이 발동됩니다...\n", victim);
+             " Player %d에게 러시안 룰렛이 발동됩니다...\n", victim);
     // 메시지 전송
     for (int i = 0; i < player_count; i++)
     {
@@ -335,7 +335,7 @@ void process_liar_command(int player_index)
     {
         target->life = 0;
         snprintf(shot_msg, sizeof(shot_msg),
-                 "🔫 탕! 러시안 룰렛이 발사되었습니다!\n");
+                 " 탕! 러시안 룰렛이 발사되었습니다!\n");
         if (victim == liar_escaped_win)
         {
             liar_escaped_win = -1;
@@ -347,7 +347,7 @@ void process_liar_command(int player_index)
         target->roulette_slots--; // 여기서 먼저 줄인다!
 
         snprintf(shot_msg, sizeof(shot_msg),
-                 "...아무 일도 일어나지 않았습니다.\n😮 Player %d이 살아남았습니다!\n", victim);
+                 "...아무 일도 일어나지 않았습니다.\n Player %d이 살아남았습니다!\n", victim);
 
         // 남은 실린더 출력
         char cylinder_state[5] = "OOOO"; // 4칸 기준
@@ -378,7 +378,7 @@ void advanced_turn()
     {
         current_turn = (current_turn + 1) % player_count;
     } while (active_players[current_turn] == 0 && current_turn != original);
-    printf("👉 다음 턴: Player %d\n", current_turn);
+    printf(" 다음 턴: Player %d\n", current_turn);
 }
 // 턴 알리기
 void notify_turn()
@@ -391,7 +391,7 @@ void notify_turn()
             players[liar_escaped_win].card_count == 0)
         {
             char win_msg[BUF_SIZE];
-            snprintf(win_msg, sizeof(win_msg), "🎉 Player %d이 모든 카드를 제출하고 살아남아 승리했습니다!\n", liar_escaped_win);
+            snprintf(win_msg, sizeof(win_msg), " Player %d이 모든 카드를 제출하고 살아남아 승리했습니다!\n", liar_escaped_win);
             for (int i = 0; i < player_count; i++)
             {
                 send(players[i].socket, win_msg, strlen(win_msg), 0);
@@ -449,7 +449,7 @@ void check_player_status(int player_index)
     {
         active_players[player_index] = 0;
         char msg[BUF_SIZE];
-        snprintf(msg, sizeof(msg), "☠️ Player %d이 탈락했습니다!\n", player_index);
+        snprintf(msg, sizeof(msg), " Player %d이 탈락했습니다!\n", player_index);
         for (int i = 0; i < player_count; i++)
         {
             send(players[i].socket, msg, strlen(msg), 0);
@@ -477,7 +477,7 @@ void check_player_status(int player_index)
     if (alive_count == 1)
     {
         char end_msg[BUF_SIZE];
-        snprintf(end_msg, sizeof(end_msg), "🏆 최종 승자: Player %d! 게임 종료!\n", winner);
+        snprintf(end_msg, sizeof(end_msg), " 최종 승자: Player %d! 게임 종료!\n", winner);
         for (int i = 0; i < player_count; i++)
         {
             send(players[i].socket, end_msg, strlen(end_msg), 0);

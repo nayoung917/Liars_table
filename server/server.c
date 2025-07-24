@@ -84,7 +84,7 @@ void accept_clients(int server_socket)
         pthread_detach(tid); // 종료 시 자동 회수
     }
     char roulette_info[BUF_SIZE];
-    snprintf(roulette_info, sizeof(roulette_info), "🌀 러시안 룰렛 안내: 실린더에는 총 4개의 칸이 있습니다.\n");
+    snprintf(roulette_info, sizeof(roulette_info), " 러시안 룰렛 안내: 실린더에는 총 4개의 칸이 있습니다.\n");
     for (int i = 0; i < player_count; i++)
     {
         send(players[i].socket, roulette_info, strlen(roulette_info), 0);
